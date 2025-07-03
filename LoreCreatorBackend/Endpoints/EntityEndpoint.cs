@@ -1,4 +1,5 @@
 
+using LoreCreatorBackend.Infrastrucure.Database;
 using LoreCreatorBackend.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,6 +37,10 @@ namespace LoreCreatorBackend.Endpoints
 
     public static async Task<IResult> GenerateNewEntity(string name, LoreDbContext db)
     {
+
+
+
+
       Entity? entity = await db.Entities.Where(e => e.Name == name).FirstAsync();
       return entity is null ? Results.NotFound() : TypedResults.Ok(entity);
     }

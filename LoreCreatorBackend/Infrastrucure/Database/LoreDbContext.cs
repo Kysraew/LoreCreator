@@ -1,7 +1,8 @@
 
 using Microsoft.EntityFrameworkCore;
+using LoreCreatorBackend.Models;
 
-namespace LoreCreatorBackend.Models
+namespace LoreCreatorBackend.Infrastrucure.Database
 {
   public class LoreDbContext : DbContext
   {
@@ -13,6 +14,11 @@ namespace LoreCreatorBackend.Models
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+      modelBuilder.Entity<Entity>()
+          .HasMany(e => e.RelatedEntities)
+          .WithMany();
+
+
       modelBuilder.Entity<EntityType>().HasData(
           new EntityType { Id = 1, Name = "Person" },
           new EntityType { Id = 2, Name = "Place" },

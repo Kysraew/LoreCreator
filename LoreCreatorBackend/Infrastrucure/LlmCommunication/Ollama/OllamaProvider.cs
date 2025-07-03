@@ -31,6 +31,7 @@ namespace LoreCreatorBackend.Infrastrucure.LlmCommunication.Ollama
         {
           name = new { type = "string" },
           description = new { type = "string" },
+          entityTypes = new { type = "string" },
           relatedEntities = new
           {
             type = "array",
