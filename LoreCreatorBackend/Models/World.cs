@@ -1,6 +1,6 @@
 namespace LoreCreatorBackend.Models
 {
-  public class WorldSetting
+  public class World
   {
     public int Id { get; set; }
 

@@ -1,3 +1,7 @@
+using LoreCreatorBackend.Endpoints;
+using LoreCreatorBackend.Infrastrucure.Database;
+using LoreCreatorBackend.Infrastrucure.LlmCommunication;
+using LoreCreatorBackend.Infrastrucure.LlmCommunication.Ollama;
 using LoreCreatorBackend.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,6 +28,8 @@ builder.Services.AddDbContext<LoreDbContext>(opts =>
         builder.Configuration["ConnectionStrings:LoreDbConnection"]);
 });
 
+builder.Services.AddSingleton<ILlmProvider, OllamaProvider>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -31,6 +37,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+WorldEndpoints.MapWorldEndpoints(app);
+
 
 app.Run();
 

@@ -21,7 +21,7 @@ namespace LoreCreatorBackend.Infrastrucure.LlmCommunication.Ollama
 
     }
 
-    public async Task<EntityDto> GetGeneratedEntityAsync(WorldSetting worldSetting, ICollection<EntityType> entityTypes, ICollection<Entity> RelavantEntities)
+    public async Task<EntityDto> GetGeneratedEntityAsync(EntityDto entityInitial, World worldSetting, ICollection<EntityType> entityTypes, ICollection<Entity> RelavantEntities)
     {
 
       var schema = new
@@ -35,10 +35,76 @@ namespace LoreCreatorBackend.Infrastrucure.LlmCommunication.Ollama
           relatedEntities = new
           {
             type = "array",
-            items = new { type = "string" }
+            items = new
+            {
+              type = "object",
+              properties = new
+              {
+                name = new { type = "string" },
+                entityType = new { type = "string" }
+              },
+              required = new[] { "name", "entityType" }
+            }
           }
         },
-        required = new[] { "name", "description", "relatedEntities" },
+        required = new[] { "name", "description", "entityType", "relatedEntities" },
+        additionalProperties = false
+      };
+
+      var schemaNode = JsonSerializer.SerializeToNode(schema);
+
+      string question = "";
+      var chatRequest = new ChatRequest
+      {
+        Model = _modelName,
+        Messages = new List<Message>
+                    {
+                        new() {
+                            Role = ChatRole.User,
+                            Content = question
+                        }
+                    },
+        Format = schemaNode,
+        Stream = false
+      };
+
+      var output = await _client.ChatAsync(chatRequest).GetContentAsync();
+
+      EntityDto? createdEntity = JsonSerializer.Deserialize<EntityDto>(output);
+
+      if (createdEntity == null) throw new LlmResponseWrongFromatException("Can't deserialize LLM output.");
+
+      return createdEntity;
+    }
+
+
+    public async Task<EntityDto> GetUpdatedEntityAsync(EntityDto entityInitial, World worldSetting, ICollection<EntityType> entityTypes, ICollection<Entity> RelavantEntities)
+    {
+
+      var schema = new
+      {
+        type = "object",
+        properties = new
+        {
+          name = new { type = "string" },
+          description = new { type = "string" },
+          entityTypes = new { type = "string" },
+          relatedEntities = new
+          {
+            type = "array",
+            items = new
+            {
+              type = "object",
+              properties = new
+              {
+                name = new { type = "string" },
+                entityType = new { type = "string" }
+              },
+              required = new[] { "name", "entityType" }
+            }
+          }
+        },
+        required = new[] { "name", "description", "entityType", "relatedEntities" },
         additionalProperties = false
       };
 

@@ -10,7 +10,7 @@ namespace LoreCreatorBackend.Infrastrucure.Database
 
     public DbSet<Entity> Entities => Set<Entity>();
     public DbSet<EntityType> EntityTypes => Set<EntityType>();
-    public DbSet<WorldSetting> WorldSettings => Set<WorldSetting>();
+    public DbSet<World> Worlds => Set<World>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
