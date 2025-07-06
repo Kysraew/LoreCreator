@@ -10,24 +10,24 @@ namespace LoreCreatorBackend.Endpoints
   {
     public static void MapWorldEndpoints(this IEndpointRouteBuilder app)
     {
-      RouteGroupBuilder worldSettingApi = app.MapGroup("/worlds");
+      RouteGroupBuilder worldsApi = app.MapGroup("/worlds");
 
-      worldSettingApi.MapGet("/", GetAllWorld);
-      worldSettingApi.MapGet("/{worldId}", GetWorld);
-      worldSettingApi.MapGet("by-name/{name}", GetWorldByName);
-      worldSettingApi.MapPost("", AddNewWorld);
-      worldSettingApi.MapPut("/{worldId}", EditWorld);
-      worldSettingApi.MapDelete("/{worldId}", DeleteWorld);
+      worldsApi.MapGet("", GetAllWorld);
+      worldsApi.MapGet("/{worldId}", GetWorld);
+      worldsApi.MapGet("by-name/{name}", GetWorldByName);
+      worldsApi.MapPost("", AddNewWorld);
+      worldsApi.MapPut("/{worldId}", EditWorld);
+      worldsApi.MapDelete("/{worldId}", DeleteWorld);
 
-      RouteGroupBuilder entitiesApi = app.MapGroup("/{worldId}/entities");
-      entitiesApi.MapGet("/", GetAllEntities);
-      entitiesApi.MapGet("/{entityId}", GetEntity);
-      entitiesApi.MapGet("by-name/{name}", GetEntityByName);
-      entitiesApi.MapPost("add", AddNewEntity);
-      entitiesApi.MapPost("generate", GenerateNewEntity);
-      entitiesApi.MapPut("update/{entityId}", EditEntity);
-      entitiesApi.MapPut("regenerate/{entityId}", GenerateUpdatedEntity);
-      entitiesApi.MapDelete("/{entityId}", DeleteEntity);
+      RouteGroupBuilder worldEntitiesApi = worldsApi.MapGroup("/{worldId:int}/entities");
+
+      worldEntitiesApi.MapGet("", GetAllWorldEntities);
+      worldEntitiesApi.MapGet("by-name/{name}", GetEntityByName);
+      worldEntitiesApi.MapPost("add", AddNewEntity);
+      worldEntitiesApi.MapPost("generate", GenerateNewEntity);
+      worldEntitiesApi.MapPut("update/{entityId}", EditEntity);
+      worldEntitiesApi.MapPut("regenerate/{entityId}", GenerateUpdatedEntity);
+
     }
 
 
@@ -46,7 +46,7 @@ namespace LoreCreatorBackend.Endpoints
 
     public static async Task<IResult> GetWorldByName(string name, LoreDbContext db)
     {
-      World? entity = await db.Worlds.Where(e => e.Name == name).FirstAsync();
+      World? entity = await db.Worlds.Where(e => e.Name == name).FirstOrDefaultAsync();
       return entity is null ? Results.NotFound() : TypedResults.Ok(entity);
     }
 
@@ -85,21 +85,15 @@ namespace LoreCreatorBackend.Endpoints
 
 
     //entities
-    public static async Task<IResult> GetAllEntities(LoreDbContext db)
+    public static async Task<IResult> GetAllWorldEntities(int worldId, LoreDbContext db)
     {
-      ICollection<Entity> entities = await db.Entities.ToListAsync();
+      ICollection<Entity> entities = await db.Entities.Where(e => e.WorldId == worldId).ToListAsync();
       return TypedResults.Ok(entities);
     }
 
-    public static async Task<IResult> GetEntity(int entityId, LoreDbContext db)
+    public static async Task<IResult> GetEntityByName(int worldId, string name, LoreDbContext db)
     {
-      Entity? entity = await db.Entities.FindAsync(entityId);
-      return entity is null ? Results.NotFound() : TypedResults.Ok(entity);
-    }
-
-    public static async Task<IResult> GetEntityByName(string name, LoreDbContext db)
-    {
-      Entity? entity = await db.Entities.Where(e => e.Name == name).FirstAsync();
+      Entity? entity = await db.Entities.Where(e => e.Name == name && e.WorldId == worldId).FirstOrDefaultAsync();
       return entity is null ? Results.NotFound() : TypedResults.Ok(entity);
     }
 
@@ -134,7 +128,7 @@ namespace LoreCreatorBackend.Endpoints
 
     public static async Task<IResult> GenerateUpdatedEntity(EntityDto entityDto, LoreDbContext db, ILlmProvider llmProvider, int worldId, int entityId)
     {
-      Entity? entity = await db.Entities.Where(e => e.WorldId == worldId && e.Id == entityId).FirstAsync();
+      Entity? entity = await db.Entities.Where(e => e.WorldId == worldId && e.Id == entityId).FirstOrDefaultAsync();
       if (entity is null) return Results.NotFound();
 
       World? world = await db.Worlds.FindAsync(worldId);
@@ -194,7 +188,7 @@ namespace LoreCreatorBackend.Endpoints
 
     public static async Task<IResult> EditEntity(EntityDto entityDto, int worldId, int entityId, LoreDbContext db)
     {
-      Entity? entity = await db.Entities.Where(e => e.WorldId == worldId && e.Id == entityId).FirstAsync();
+      Entity? entity = await db.Entities.Where(e => e.WorldId == worldId && e.Id == entityId).FirstOrDefaultAsync();
       if (entity is null) return Results.NotFound();
 
       try
@@ -217,16 +211,6 @@ namespace LoreCreatorBackend.Endpoints
       }
     }
 
-    public static async Task<IResult> DeleteEntity(int worldId, int entityId, LoreDbContext db)
-    {
-      if (await db.Entities.FindAsync(worldId) is Entity world)
-      {
-        db.Entities.Remove(world);
-        await db.SaveChangesAsync();
-        return Results.NoContent();
-      }
 
-      return Results.NotFound();
-    }
   }
 }

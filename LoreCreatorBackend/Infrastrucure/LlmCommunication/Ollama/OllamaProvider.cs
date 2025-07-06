@@ -11,12 +11,12 @@ namespace LoreCreatorBackend.Infrastrucure.LlmCommunication.Ollama
   {
 
     private OllamaApiClient _client;
-    private string _modelName;
+    public readonly string modelName = "qwen3:0.6b";
+    public readonly string address = "127.0.0.1:11434";
 
-    public OllamaProvider(string ollamaAddress, string modelName)
+    public OllamaProvider()
     {
-      _client = new OllamaApiClient(ollamaAddress);
-      _modelName = modelName;
+      _client = new OllamaApiClient(address);
 
 
     }
@@ -56,7 +56,7 @@ namespace LoreCreatorBackend.Infrastrucure.LlmCommunication.Ollama
       string question = "";
       var chatRequest = new ChatRequest
       {
-        Model = _modelName,
+        Model = modelName,
         Messages = new List<Message>
                     {
                         new() {
@@ -113,7 +113,7 @@ namespace LoreCreatorBackend.Infrastrucure.LlmCommunication.Ollama
       string question = "";
       var chatRequest = new ChatRequest
       {
-        Model = _modelName,
+        Model = modelName,
         Messages = new List<Message>
                     {
                         new() {
